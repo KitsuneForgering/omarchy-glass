@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "kitsuneforgering.glass",
+  "name": "Glass",
+  "version": "0.1.0",
+  "author": "KitsuneForgering",
+  "description": "Translucent glass bar and menu with blur, rim light and a desktop-refracting rim lens",
+  "kinds": [
+    "bar",
+    "menu",
+    "bar-widget"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "bar": "Bar.qml",
+    "menu": "Menu.qml",
+    "barWidget": "MenuButton.qml"
+  },
+  "barWidget": {
+    "displayName": "Glass menu",
+    "description": "Opens the glass Omarchy menu",
+    "category": "Compositor",
+    "allowMultiple": false,
+    "defaultSection": "left"
+  }
+}

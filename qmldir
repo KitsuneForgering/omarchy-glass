@@ -1,0 +1,3 @@
+singleton PluginGlassLens 1.0 PluginGlassLens.qml
+PluginGlass 1.0 PluginGlass.qml
+PluginGlassScrim 1.0 PluginGlassScrim.qml
