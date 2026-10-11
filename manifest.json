@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "kitsuneforgering.glass",
   "name": "Glass",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "KitsuneForgering",
   "description": "Translucent glass bar and menu with blur, rim light and a desktop-refracting rim lens",
   "kinds": [

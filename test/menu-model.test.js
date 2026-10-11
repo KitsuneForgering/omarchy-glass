@@ -58,3 +58,31 @@ test('app rows appear under Apps, survive refreshes, and disappear when removed'
     'apps.org.example.Editor', 'apps.org.example.Terminal'
   ])
 })
+
+test('app library arrival populates rows and refreshes the display on the next turn', () => {
+  const base = menu.mergeMenuSources(menu.parseMenuJsonc('{"apps":{"label":"Apps","provider":"apps"}}'), [])
+  const pending = []
+  let displayed = 0
+  const state = {
+    items: base.items,
+    itemOrder: base.itemOrder,
+    opened: true,
+    rebuildDisplay() { displayed = menu.childCount(this.items, this.itemOrder, 'apps') }
+  }
+  const library = {
+    sortedEntries() { return [{ entry: { id: 'org.example.Editor', name: 'Editor', icon: 'editor', keywords: ['text'] } }] },
+    entryName(entry) { return entry.name },
+    entrySubtext() { return 'Text editor' }
+  }
+
+  assert.equal(menu.refreshAppRows(state, null, callback => pending.push(callback)), false)
+  assert.equal(menu.refreshAppRows(state, library, callback => pending.push(callback)), true)
+  assert.equal(menu.childCount(state.items, state.itemOrder, 'apps'), 1)
+  assert.equal(state.items['apps.org.example.Editor'].label, 'Editor')
+  assert.deepEqual(state.items['apps.org.example.Editor'].aliases, ['Text editor', 'text'])
+  assert.equal(displayed, 0)
+  assert.equal(pending.length, 1)
+
+  pending.shift()()
+  assert.equal(displayed, 1)
+})

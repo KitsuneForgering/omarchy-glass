@@ -78,10 +78,20 @@ Item {
 
   // Shared application engine (entries, hidden filters, icons, launch,
   // removal), owned by the shell and also used by the standalone launcher.
-  readonly property var appLibrary: root.shell ? root.shell.appLibrary : null
+  // Some Omarchy hosts do not inject the scoped shell API into third-party
+  // menus. Load the same application service locally in that case, so Apps
+  // still uses Omarchy's hidden-entry rules, icons, and launch behavior.
+  Loader {
+    id: fallbackAppLibrary
+    active: !root.shell || !root.shell.appLibrary
+    source: "file://" + root.omarchyPath + "/shell/services/AppLibrary.qml"
+  }
+  readonly property var appLibrary: root.shell && root.shell.appLibrary
+    ? root.shell.appLibrary : fallbackAppLibrary.item
   onAppLibraryChanged: {
     if (!root.appLibrary || !root.opened || root.dmenuActive) return
-    if (root.activeMenu === "apps") root.loadProviderForMenu("apps")
+    if (root.providersLoaded["apps"]) root.mergeAppRows()
+    else if (root.activeMenu === "apps") root.loadProviderForMenu("apps")
     else if (root.filterText.trim()) root.loadProvidersForSearch()
   }
   property bool deleteConfirmOpen: false
@@ -294,44 +304,7 @@ Item {
   // (DesktopEntries) instead of a bash enumeration, so they carry image
   // icons, launch feedback, and uninstall support like the launcher.
   function mergeAppRows() {
-    if (!root.appLibrary) return false
-
-    var rows = root.appLibrary.sortedEntries("")
-    var appRows = []
-    for (var j = 0; j < rows.length; j++) {
-      var entry = rows[j].entry
-      var appId = String(entry.id || "")
-      if (!appId) continue
-      var subtext = root.appLibrary.entrySubtext(entry)
-      var aliases = subtext ? [subtext] : []
-      try {
-        if (entry.keywords && typeof entry.keywords.join === "function") aliases = aliases.concat(entry.keywords)
-      } catch (e) { }
-      appRows.push({
-        id: "apps." + appId,
-        parent: "apps",
-        kind: "app",
-        icon: "",
-        appIcon: String(entry.icon || ""),
-        appId: appId,
-        label: root.appLibrary.entryName(entry),
-        title: "",
-        target: "",
-        description: subtext,
-        action: "",
-        provider: "",
-        aliases: aliases,
-        when: "",
-        checked: "",
-        order: 0
-      })
-    }
-
-    var merged = MenuModel.mergeAppRows(root.items, root.itemOrder, appRows)
-    root.items = merged.items
-    root.itemOrder = merged.itemOrder
-    if (root.opened) root.rebuildDisplay()
-    return true
+    return MenuModel.refreshAppRows(root, root.appLibrary, Qt.callLater)
   }
 
   function startProviderForMenu(id) {

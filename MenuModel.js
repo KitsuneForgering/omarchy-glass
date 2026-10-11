@@ -140,6 +140,52 @@ function mergeAppRows(items, itemOrder, appRows) {
   return { items: nextItems, itemOrder: nextOrder }
 }
 
+// Install the current application snapshot. QML var-property assignments and
+// ListModel updates can settle on different turns of the event loop; rebuild
+// the visible list after both maps have been replaced.
+function refreshAppRows(menu, appLibrary, callLater) {
+  if (!appLibrary) return false
+
+  var rows = appLibrary.sortedEntries("")
+  var appRows = []
+  for (var j = 0; j < rows.length; j++) {
+    var entry = rows[j].entry
+    var appId = String(entry.id || "")
+    if (!appId) continue
+    var subtext = appLibrary.entrySubtext(entry)
+    var aliases = subtext ? [subtext] : []
+    try {
+      if (entry.keywords && typeof entry.keywords.join === "function") aliases = aliases.concat(entry.keywords)
+    } catch (e) { }
+    appRows.push({
+      id: "apps." + appId,
+      parent: "apps",
+      kind: "app",
+      icon: "",
+      appIcon: String(entry.icon || ""),
+      appId: appId,
+      label: appLibrary.entryName(entry),
+      title: "",
+      target: "",
+      description: subtext,
+      action: "",
+      provider: "",
+      aliases: aliases,
+      when: "",
+      checked: "",
+      order: 0
+    })
+  }
+
+  var merged = mergeAppRows(menu.items, menu.itemOrder, appRows)
+  menu.items = merged.items
+  menu.itemOrder = merged.itemOrder
+  if (menu.opened) callLater(function() {
+    if (menu.opened) menu.rebuildDisplay()
+  })
+  return true
+}
+
 // Swaps the rows one provider contributed, leaving every other item untouched.
 // Rows carry the id of the submenu that produced them, so a provider that runs
 // again drops its previous batch — a plugin that was just enabled disappears
@@ -495,6 +541,7 @@ if (typeof module !== "undefined") {
     parseMenuJsonc: parseMenuJsonc,
     mergeMenuSources: mergeMenuSources,
     mergeAppRows: mergeAppRows,
+    refreshAppRows: refreshAppRows,
     swapProviderRows: swapProviderRows,
     item: item,
     resolveRoute: resolveRoute,
