@@ -70,7 +70,7 @@ area behind the centre of a surface is blurred, not refracted. The lens:
 - comes back after `hyprctl reload` and is cleared when the plugin unloads.
 
 It writes the generated shader to `$XDG_RUNTIME_DIR/omarchy-glass-lens-*.frag`
-and calls `hyprctl`. It needs no network access, no `sudo` and no extra
+and calls `hyprctl`. It needs no network access, elevated permissions, or extra
 packages.
 
 ## Remove
