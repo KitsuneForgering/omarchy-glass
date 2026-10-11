@@ -34,7 +34,8 @@ function normalizeItem(id, raw) {
     provider: value.provider || "",
     aliases: aliases,
     when: value.when || "",
-    checked: value.checked || ""
+    checked: value.checked || "",
+    explicitFields: Object.keys(value)
   }
 }
 
@@ -76,8 +77,15 @@ function mergeMenuSources(defaultItems, userItems) {
       var prior = nextItems[entry.id] || {}
       var merged = {}
       for (var k in prior) merged[k] = prior[k]
-      for (var k2 in entry) merged[k2] = entry[k2]
+      // New rows need all normalized defaults. Existing rows only take keys
+      // supplied by the later source.
+      var fields = !prior.id || !entry.explicitFields ? Object.keys(entry) : entry.explicitFields
+      for (var f = 0; f < fields.length; f++) {
+        var k2 = fields[f]
+        if (k2 !== "explicitFields") merged[k2] = entry[k2]
+      }
       merged.id = entry.id
+      merged.kind = merged.action ? "action" : (merged.target ? "link" : "menu")
       nextItems[entry.id] = merged
     }
   }

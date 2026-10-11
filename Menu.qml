@@ -79,6 +79,11 @@ Item {
   // Shared application engine (entries, hidden filters, icons, launch,
   // removal), owned by the shell and also used by the standalone launcher.
   readonly property var appLibrary: root.shell ? root.shell.appLibrary : null
+  onAppLibraryChanged: {
+    if (!root.appLibrary || !root.opened || root.dmenuActive) return
+    if (root.activeMenu === "apps") root.loadProviderForMenu("apps")
+    else if (root.filterText.trim()) root.loadProvidersForSearch()
+  }
   property bool deleteConfirmOpen: false
   property var deleteTarget: null
   onOpenedChanged: if (!opened) { deleteConfirmOpen = false; deleteTarget = null }
@@ -289,7 +294,7 @@ Item {
   // (DesktopEntries) instead of a bash enumeration, so they carry image
   // icons, launch feedback, and uninstall support like the launcher.
   function mergeAppRows() {
-    if (!root.appLibrary) return
+    if (!root.appLibrary) return false
 
     var rows = root.appLibrary.sortedEntries("")
     var appRows = []
@@ -326,14 +331,14 @@ Item {
     root.items = merged.items
     root.itemOrder = merged.itemOrder
     if (root.opened) root.rebuildDisplay()
+    return true
   }
 
   function startProviderForMenu(id) {
     var entry = root.item(id)
     if (!entry || !entry.provider || root.providersLoaded[id]) return
     if (entry.provider === "apps") {
-      root.providersLoaded[id] = true
-      root.mergeAppRows()
+      if (root.mergeAppRows()) root.providersLoaded[id] = true
       return
     }
     var spec = root.providers[entry.provider]

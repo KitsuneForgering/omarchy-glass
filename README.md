@@ -84,6 +84,9 @@ them to `omarchy-menu toggle`.
 
 ## How it is built
 
+Run the menu model's unit and regression tests with `npm test`. They use
+Node.js built-in test runner and need no installed packages.
+
 `Bar.qml`, `Menu.qml`, `MenuButton.qml`, `BarModel.js` and `MenuModel.js` are
 generated from the Omarchy shell sources by
 [Widget on Glass](https://github.com/KitsuneForgering/Widget-on-glass)
